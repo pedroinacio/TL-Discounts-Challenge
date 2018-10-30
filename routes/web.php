@@ -22,6 +22,13 @@ $app->put('products/{id}', 'ProductsController@update');
 $app->post('products', 'ProductsController@store');
 $app->delete('products/{id}', 'ProductsController@destroy');
 
+//CUSTOMERS
+$app->get('customers', 'CustomersController@index');
+$app->get('customers/{id}', 'CustomersController@show');
+$app->put('customers/{id}', 'CustomersController@update');
+$app->post('customers', 'CustomersController@store');
+$app->delete('customers/{id}', 'CustomersController@destroy');
+
 //ORDERS
 $app->get('orders', 'OrdersController@index');
 $app->get('orders/{id}', 'OrdersController@show');
@@ -29,9 +36,5 @@ $app->put('orders/{id}', 'OrdersController@update');
 $app->post('orders', 'OrdersController@store');
 $app->delete('orders/{id}', 'OrdersController@destroy');
 
-//CUSTOMERS
-$app->get('customers', 'CustomersController@index');
-$app->get('customers/{id}', 'CustomersController@show');
-$app->put('customers/{id}', 'CustomersController@update');
-$app->post('customers', 'CustomersController@store');
-$app->delete('customers/{id}', 'CustomersController@destroy');
+//DISCOUNTS
+$app->put('discounts', 'DiscountsController@update');
