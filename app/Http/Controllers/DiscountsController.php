@@ -39,9 +39,9 @@ class DiscountsController extends Controller
     }
 
     /**
-     * The order request, cascades through the many discounts available, and returns updated
+     * The order request, 'cascades' through the many discounts available, and returns updated
      */
-    private function getDiscount(Request $request) {
+    private function getDiscount(Request $request) {        
         $request = $this->discountType1($request);
         $request = $this->discountType2($request);
         $request = $this->discountType3($request);
@@ -56,6 +56,9 @@ class DiscountsController extends Controller
         
         if($customer->revenue >= self::TYPE1_MIN_REVENUE){
             $request['total'] = $request->total - ($request->total/10);
+
+            //Verbose message reply
+            $request->request->add(['type1' => true]);
         }
 
         return $request;
@@ -72,7 +75,10 @@ class DiscountsController extends Controller
 
                 if($category['category'] == self::TYPE2_CAT){
                     //Add one free item
-                    $items[$i]['quantity'] $items[$i]['quantity'] + self::TYPE2_DISCOUNT;
+                    $items[$i]['quantity'] = $items[$i]['quantity'] + self::TYPE2_DISCOUNT;
+
+                    //Verbose message reply
+                    $request->request->add(['type2' => true]);
                 }
             }
         }
@@ -84,6 +90,35 @@ class DiscountsController extends Controller
 
     //If you buy two or more products of category "Tools" (id 1), you get a 20% discount on the cheapest product
     private function discountType3(Request $request) {
-        
+        $items = $request->items;
+        $number_of_products_of_cat_3 = 0;
+        $cheapest_product_of_cat_3 = [];//No cheapest item in the beggining of the process
+
+        for($i = 0; count($items) > $i; $i++) {
+            $category = Product::where('product_id',$items[$i]['product-id'])->first();
+
+            //If this item is from the TYPE3_CAT category, save item if cheaper than current cheapest
+            if($category['category'] == self::TYPE3_CAT){
+                $number_of_products_of_cat_3 += $items[$i]['quantity'];
+                if(!isset($cheapest_product_of_cat_3['unit-price']) || $items[$i]['unit-price'] < $cheapest_product_of_cat_3['unit-price']){
+                    $cheapest_product_of_cat_3['unit-price'] = $items[$i]['unit-price'];
+                    $cheapest_product_of_cat_3['product_key'] = $i;
+                }
+            }
+        }
+
+        //Finally, if $cheapest_product_of_cat_3 is not empty and $number_of_products_of_cat_3 is bigger than TYPE3_MIN_CAT_1, 
+        //apply the 20% to the item with the product-id in $cheapest_product_of_cat_3['product-id'], for that is the cheapest item
+        if(isset($cheapest_product_of_cat_3['product_key']) && $number_of_products_of_cat_3 >= self::TYPE3_MIN_CAT_1){
+            $i = $cheapest_product_of_cat_3['product_key'];
+            $items[$i]['total'] = $items[$i]['total'] - ($items[$i]['total']/20);
+
+            //Verbose message reply
+            $request->request->add(['type3' => true]);
+        }
+
+        $request['items'] = $items;
+
+        return $request;
     }
 }
